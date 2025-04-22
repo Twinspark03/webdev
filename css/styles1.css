@@ -1,0 +1,75 @@
+<!-- This will be for the scratch html page -->
+
+.common{
+    text-align: center;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.header {
+    background-color: whitesmoke;
+    color: black;
+    height: 100px;
+    line-height: 100px;
+}
+
+.mainbody {
+    background-color: #87Ceeb;
+}
+
+.footer {
+    position: fixed;
+    background-color: whitesmoke;
+    color: white;
+    bottom: 0px;
+    left: 5px;
+    right: 5px;
+    height: 25px;
+    line-height: 25px;
+}
+
+img {
+    display: block;
+    width: 70%;
+    height: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 10px;
+}
+
+iframe {
+    display: block;
+    width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+nav {
+    background-color: aliceblue;
+    padding: 10px;
+    overflow: hidden;
+}
+
+nav a {
+    color: #333;
+    text-decoration: none;
+    padding: 20px;
+    font-weight: bold;
+}
+
+nav a:hover {
+    background-color: #ccc;
+}
+
+h3 {
+    text-align: center;
+}
+
+p {
+    font-weight: bold;
+    text-align: center;
+}
+
+.speaker {
+    text-align: left;
+    font-size: 35px;
+}

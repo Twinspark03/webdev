@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turtle Dash Game</title>
+    <nav style="position: absolute; top: 10px; left: 10px; font-weight: lighter; font-size: 20px; "> 
+        <a href="ScratchPage.html">Scratch Page</a> 
+    </nav>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background-color: #87CEEB;
+            text-align: center;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: #98FB98;
+        }
+
+        #startButton {
+            padding: 10px 20px;
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #008000;
+            color: white;
+            border: none;
+            margin-top: 20px;
+        }
+
+        #startButton:hover {
+            background-color: #006400;
+        }
+    </style>
+</head>
+<body>
+    <button id="startButton" onclick="startGame()">Start Game</button>
+    <script>
+        let canvas, ctx;
+        let turtle = { x: 50, y: 350, size: 30, velocityY: 0, jumping: false, direction: 'right' };
+        let obstacles = [];
+        let gameSpeed = 5;
+        let score = 0;
+        let gameOver = false;
+        let gameStarted = false;
+        let backgroundX = 0;
+
+        function setupCanvas() {
+            canvas = document.createElement('canvas');
+            ctx = canvas.getContext('2d');
+            document.body.appendChild(canvas);
+
+            canvas.width = 800;
+            canvas.height = 400;
+        }
+        
+        function getRandomObstacleDistance() {
+        return Math.floor(Math.random() * 200) + 300; // Random distance between 300 and 500
+    }
+        function drawBackground() {
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Scrolling background
+            ctx.fillStyle = '#32CD32';
+            ctx.fillRect(backgroundX, canvas.height - 50, canvas.width, 50); // Grass
+            ctx.fillRect(backgroundX + canvas.width, canvas.height - 50, canvas.width, 50);
+
+            // Move background
+            backgroundX -= gameSpeed / 2;
+            if (backgroundX <= -canvas.width) {
+                backgroundX = 0;
+            }
+        }
+
+        function drawTurtle() {
+            ctx.save();
+            if (turtle.direction === 'right') { 
+                // Scale for facing right
+                ctx.scale(1, 1); 
+                ctx.font = `${turtle.size}px Arial`;
+                ctx.fillText('🐢', turtle.x, turtle.y + turtle.size);
+            } else { 
+                // Flip horizontally for facing left
+                ctx.scale(-1, 1); 
+                ctx.font = `${turtle.size}px Arial`;
+                ctx.fillText('🐢', -turtle.x - turtle.size, turtle.y + turtle.size);
+            }
+            ctx.restore();
+        }
+
+        function drawObstacles() {
+            obstacles.forEach(obstacle => {
+                if (obstacle.type === 'rock') {
+                    ctx.fillStyle = '#8B4513'; // Brown for rocks
+                    ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                } else if (obstacle.type === 'bush') {
+                    ctx.fillStyle = '#228B22'; // Green for bushes
+                    ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                }
+            });
+        }
+
+        function drawGameOver() {
+            ctx.font = '40px Arial';
+            ctx.fillStyle = '#FF0000'; // Red color for game over
+            ctx.textAlign = 'center';
+            ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 20);
+            ctx.font = '20px Arial';
+            ctx.fillText('Press Space to Restart', canvas.width / 2, canvas.height / 2 + 20);
+        }
+     
+        function updateTurtle() {
+            if (turtle.jumping) {
+                turtle.velocityY += 1.2;
+                turtle.y += turtle.velocityY;
+                if (turtle.y >= 350) {
+                    turtle.y = 350;
+                    turtle.jumping = false;
+                    turtle.velocityY = 0;
+                }
+            }
+        }
+
+        function updateObstacles() {
+            obstacles.forEach(obstacle => {
+                obstacle.x -= gameSpeed;
+                if (obstacle.type === 'bouncy') {
+                    obstacle.y += obstacle.velocityY;
+                    if (obstacle.y > 350 || obstacle.y < 300) {
+                        obstacle.velocityY *= -1; // Bounce up and down
+                    }
+                }
+            });
+
+            if (obstacles.length === 0 || obstacles[obstacles.length - 1].x < 500) {
+                const randomType = Math.random() < 0.5 ? 'rock' : 'bush';
+                obstacles.push({
+                    x: canvas.width,
+                    y: 370 - Math.floor(Math.random() * 50),
+                    width: Math.random() < 0.5 ? 20 : 30,
+                    height: Math.random() < 0.5 ? 20 : 30,
+                    type: randomType,
+                    velocityY: randomType === 'bouncy' ? 2 : 0 // Only bouncy obstacles move up/down
+                });
+            }
+
+            obstacles = obstacles.filter(obstacle => obstacle.x > -20);
+        }
+
+        function detectCollision() {
+            obstacles.forEach(obstacle => {
+                if (
+                    turtle.x < obstacle.x + obstacle.width &&
+                    turtle.x + turtle.size > obstacle.x &&
+                    turtle.y < obstacle.y + obstacle.height &&
+                    turtle.y + turtle.size > obstacle.y
+                ) {
+                    gameOver = true;
+                }
+            });
+        }
+
+        function drawScore() {
+            ctx.font = '30px Arial';
+            ctx.fillStyle = '#000';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Score: ${score}`, canvas.width / 2, 50);
+        }
+
+        function restartGame() {
+            turtle.x = 50;
+            turtle.y = 350;
+            turtle.velocityY = 0;
+            turtle.jumping = false;
+            turtle.direction = 'right';
+            obstacles = [];
+            score = 0;
+            gameSpeed = 5;
+            gameOver = false;
+        }
+
+        function startGame() {
+            document.getElementById('startButton').style.display = 'none';
+            gameStarted = true;
+            setupCanvas();
+            gameLoop();
+        }
+
+        function updateGame() {
+            if (!gameOver && gameStarted) {
+                score++;
+                updateTurtle();
+                updateObstacles();
+                detectCollision();
+            } else if (gameOver) {
+                ctx.font = '40px Arial';
+                ctx.fillStyle = '#FF0000';
+                ctx.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2);
+                ctx.font = '20px Arial';
+                ctx.fillText('Press Space to Restart', canvas.width / 2 - 100, canvas.height / 2 + 30);
+                return;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackground();
+            drawTurtle();
+            drawObstacles();
+            drawScore();
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.code === 'Space') {
+                if (gameOver) {
+                    restartGame();
+                } else if (!turtle.jumping && gameStarted) {
+                    turtle.jumping = true;
+                    turtle.velocityY = -20;
+                }
+            } else if (e.code === 'ArrowRight') {
+                turtle.direction = 'right';
+                turtle.x += 10;
+            } else if (e.code === 'ArrowLeft') {
+                turtle.direction = 'left';
+                turtle.x -= 10;
+            }
+        });
+
+        function gameLoop() {
+            updateGame();
+            requestAnimationFrame(gameLoop);
+        }
+    </script>
+</body>
+</html>
+
